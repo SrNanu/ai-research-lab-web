@@ -1,0 +1,33 @@
+---
+// Filtros como links a páginas estáticas: funcionan sin JavaScript.
+import { estados, etiquetaEstado, agruparEtiquetas, papersConCorrida } from '../lib/papers';
+interface Props { actual?: string } // 'todos', un estado, o 'tag:<slug>'
+const { actual = 'todos' } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const papers = await papersConCorrida();
+const cuentaEstado = (e: string) => papers.filter(({ p }) => p.data.estado === e).length;
+const etiquetas = agruparEtiquetas(papers);
+const MAX = 8;
+---
+<nav class="filtros" aria-label="Filtrar papers">
+  <a href={`${base}/`} aria-current={actual === 'todos' ? 'page' : undefined}>todos · {papers.length}</a>
+  {estados.filter((e) => cuentaEstado(e) > 0).map((e) => (
+    <a href={`${base}/estado/${e}`} class={`e-${e}`} aria-current={actual === e ? 'page' : undefined}>
+      {etiquetaEstado[e].toLowerCase()} · {cuentaEstado(e)}
+    </a>
+  ))}
+  {etiquetas.slice(0, MAX).map((t) => (
+    <a href={`${base}/etiquetas/${t.slug}`} aria-current={actual === `tag:${t.slug}` ? 'page' : undefined}>#{t.nombre}</a>
+  ))}
+  {etiquetas.length > 0 && <a class="mas" href={`${base}/etiquetas`} aria-current={actual === 'etiquetas' ? 'page' : undefined}>
+    {etiquetas.length > MAX ? `todas las etiquetas (${etiquetas.length}) →` : 'etiquetas →'}</a>}
+</nav>
+<style>
+  .filtros { display: flex; gap: .45rem; flex-wrap: wrap; margin: 0 0 1.4rem; }
+  a { font: .7rem/1 var(--mono); color: var(--suave); text-decoration: none; background: var(--tarjeta);
+      border: 1px solid var(--borde); border-radius: 99px; padding: .4rem .65rem; }
+  a:hover { color: var(--texto); border-color: var(--texto); }
+  a[aria-current='page'] { color: var(--fondo); background: var(--texto); border-color: var(--texto); }
+  .e-propuesta { border-style: dashed; }
+  .mas { border-color: transparent; background: transparent; color: var(--acento); }
+</style>

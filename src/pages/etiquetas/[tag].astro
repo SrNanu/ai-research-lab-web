@@ -1,0 +1,25 @@
+---
+import Base from '../../layouts/Base.astro';
+import AvisoIA from '../../components/AvisoIA.astro';
+import Filtros from '../../components/Filtros.astro';
+import ListaPapers from '../../components/ListaPapers.astro';
+import { papersConCorrida, agruparEtiquetas } from '../../lib/papers';
+
+export async function getStaticPaths() {
+  const grupos = agruparEtiquetas(await papersConCorrida());
+  return grupos.map((g) => ({ params: { tag: g.slug }, props: g }));
+}
+const { slug, nombre, papers } = Astro.props;
+---
+<Base titulo={`#${nombre}`} descripcion={`Papers generados por IA con la etiqueta ${nombre}.`}>
+  <p class="eti">Etiqueta</p>
+  <h1>#{nombre}</h1>
+  <p class="bajada">{papers.length} {papers.length === 1 ? 'paper' : 'papers'} con esta etiqueta.</p>
+  <AvisoIA />
+  <Filtros actual={`tag:${slug}`} />
+  <ListaPapers papers={papers} />
+</Base>
+<style>
+  h1 { margin: .3rem 0 .8rem; overflow-wrap: anywhere; }
+  .bajada { color: var(--suave); margin: 0; }
+</style>

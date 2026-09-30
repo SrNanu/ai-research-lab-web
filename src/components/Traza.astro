@@ -1,0 +1,42 @@
+---
+// Siete puntos, uno por etapa del pipeline. Sale de `estado` y de si existe viz.html,
+// así que no necesita campos nuevos en el frontmatter.
+import type { Estado } from '../lib/papers';
+interface Props { estado: Estado; viz: boolean; grande?: boolean }
+const { estado, viz, grande = false } = Astro.props;
+
+type Marca = 'hecha' | 'no' | 'refutada';
+const experimentos: Marca = estado === 'propuesta' ? 'no' : estado === 'resultado-negativo' ? 'refutada' : 'hecha';
+const etapas: [string, Marca][] = [
+  ['señales', 'hecha'],
+  ['ideas', 'hecha'],
+  ['revisión cruzada', 'hecha'],
+  ['plan', 'hecha'],
+  ['experimentos', experimentos],
+  ['paper', 'hecha'],
+  ['paper project', viz ? 'hecha' : 'no'],
+];
+const hechas = etapas.filter(([, m]) => m !== 'no').length;
+const faltan = etapas.filter(([, m]) => m === 'no').map(([n]) => n);
+let etiqueta = `${hechas} de 7 etapas`;
+if (faltan.length) etiqueta += `; sin ${faltan.join(' ni ')}`;
+if (experimentos === 'refutada') etiqueta += '; el experimento refutó la hipótesis';
+---
+<span class:list={['traza', { grande }]} role="img" aria-label={etiqueta} title={etiqueta}>
+  {etapas.map(([nombre, marca], i) => (
+    <>
+      {i > 0 && <b></b>}
+      <i class={marca} data-etapa={nombre}></i>
+    </>
+  ))}
+</span>
+<style>
+  .traza { display: inline-flex; align-items: center; color: var(--texto); vertical-align: middle; }
+  i { display: block; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid currentColor; background: currentColor; position: relative; }
+  i.no { background: transparent; border-style: dashed; opacity: .55; }
+  i.refutada { background: transparent; }
+  i.refutada::after { content: ""; position: absolute; left: -3px; right: -3px; top: 50%; border-top: 1.5px solid currentColor; transform: rotate(-45deg); }
+  b { display: block; width: 8px; height: 1.5px; background: currentColor; opacity: .45; }
+  .grande i { width: 13px; height: 13px; }
+  .grande b { width: 16px; }
+</style>

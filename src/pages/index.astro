@@ -1,0 +1,84 @@
+---
+import Base from '../layouts/Base.astro';
+import AvisoIA from '../components/AvisoIA.astro';
+import Filtros from '../components/Filtros.astro';
+import ListaPapers from '../components/ListaPapers.astro';
+import Traza from '../components/Traza.astro';
+import { papersConCorrida, tieneViz, formatoCorrida } from '../lib/papers';
+
+const papers = await papersConCorrida();
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const cuenta = (estado: string) => papers.filter(({ p }) => p.data.estado === estado).length;
+const cifras = [
+  { n: papers.length, texto: papers.length === 1 ? 'corrida publicada' : 'corridas publicadas' },
+  { n: cuenta('con-experimentos'), texto: 'con experimentos' },
+  { n: cuenta('resultado-negativo'), texto: cuenta('resultado-negativo') === 1 ? 'resultado negativo' : 'resultados negativos' },
+];
+// El paper project más reciente que exista.
+const destacado = papers.find(({ p }) => tieneViz(p.id));
+---
+<Base titulo="Papers">
+  <section class="hero">
+    <h1>Un laboratorio que <em>investiga solo</em>, todos los días.</h1>
+    <p class="bajada">Un sistema autónomo corriendo en una mini PC casera busca señales de investigación,
+       propone ideas, las hace revisar por tres modelos distintos, corre experimentos cuando puede y publica
+       lo que encontró, incluso cuando la hipótesis no se cumple.</p>
+    <dl class="cifras">
+      {cifras.map((c) => <div><dt>{c.texto}</dt><dd>{c.n}</dd></div>)}
+    </dl>
+  </section>
+
+  <AvisoIA />
+
+  {destacado && (
+    <section class="destacado" aria-labelledby="destacado-titulo">
+      <div class="txt">
+        <p class="eti">Paper project · corrida {formatoCorrida(destacado.corrida)}</p>
+        <h2 id="destacado-titulo">{destacado.p.data.titulo}</h2>
+        <p>{destacado.p.data.resumen}</p>
+        <Traza estado={destacado.p.data.estado} viz={true} />
+        <a class="boton" href={`${base}/papers/${destacado.p.id}`}>Abrir el paper →</a>
+      </div>
+      <div class="viz">
+        <!-- sandbox sin allow-same-origin: el JS generado por IA no puede tocar el sitio -->
+        <iframe src={`${base}/papers/${destacado.p.id}/viz.html`} sandbox="allow-scripts" loading="lazy"
+                title={`Paper project: ${destacado.p.data.titulo}`}></iframe>
+        <span class="rotulo">vista previa · sandbox</span>
+      </div>
+    </section>
+  )}
+
+  <h2 class="eti titulo-bitacora">Bitácora</h2>
+  <Filtros />
+  <ListaPapers papers={papers} />
+</Base>
+<style>
+  p { margin: 0; }
+  .hero { display: grid; gap: 1rem; padding-block: 1.2rem .4rem; }
+  .hero h1 { font-size: clamp(2rem, 6vw, 3.3rem); margin: 0; }
+  .hero h1 em { font-style: normal; color: var(--acento); }
+  .bajada { color: var(--suave); max-width: 60ch; }
+  .cifras { display: flex; gap: 1rem 2rem; flex-wrap: wrap; margin: .3rem 0 0; }
+  .cifras div { display: flex; flex-direction: column-reverse; }
+  .cifras dt { font: .7rem var(--mono); color: var(--suave); }
+  .cifras dd { margin: 0; font: 600 1.7rem/1.1 var(--display); font-variant-numeric: tabular-nums; }
+
+  .destacado { display: grid; grid-template-columns: 1fr 1.15fr; margin: 0 0 2.5rem;
+               border: 1px solid var(--borde); border-radius: 6px; background: var(--tarjeta); overflow: hidden; }
+  .txt { padding: 1.2rem; display: grid; gap: .7rem; align-content: start; }
+  .txt h2 { font-size: 1.35rem; font-weight: 600; margin: 0; }
+  .txt p:not(.eti) { font-size: .95rem; color: var(--suave); }
+  .boton { justify-self: start; font: 500 .75rem var(--mono); color: var(--tarjeta); background: var(--acento);
+           padding: .55rem .9rem; border-radius: 99px; text-decoration: none; margin-top: .3rem; }
+  .boton:hover { filter: brightness(1.1); }
+  .viz { position: relative; border-left: 1px solid var(--borde); min-height: 320px; background: #fff; }
+  .viz iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .rotulo { position: absolute; left: .6rem; bottom: .5rem; font: .62rem var(--mono); color: var(--suave);
+            background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 3px; padding: .15rem .4rem; pointer-events: none; }
+  @media (max-width: 720px) {
+    .destacado { grid-template-columns: 1fr; }
+    .viz { border-left: 0; border-top: 1px solid var(--borde); }
+  }
+
+  .titulo-bitacora { margin: 0 0 1rem; font-size: .7rem; letter-spacing: .08em; }
+</style>

@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import Estado from '../components/Estado.astro';
+import Traza from '../components/Traza.astro';
+---
+<Base titulo="Cómo funciona">
+  <h1>Cómo funciona el laboratorio</h1>
+  <p>Todo corre solo, todos los días, en una mini PC (Ryzen 5, 32 GB RAM, sin GPU) en Rosario.</p>
+  <ol>
+    <li><strong>Señales:</strong> <a href="https://github.com/EvoMap/AutoResearch">AutoResearch</a> recolecta papers, discusiones y repos recientes.</li>
+    <li><strong>Ideas:</strong> tres modelos de lenguaje distintos proponen ideas y se revisan entre sí; una idea no se aprueba con la opinión de un solo modelo.</li>
+    <li><strong>Plan:</strong> se genera un plan experimental con métricas y criterios para refutar la hipótesis.</li>
+    <li><strong>Experimentos</strong> (cuando aplica): código ejecutado en un contenedor aislado, solo con CPU.</li>
+    <li><strong>Paper:</strong> un modelo redacta el documento usando solo la evidencia registrada. Si no hubo experimentos, se publica como <em>propuesta</em>.</li>
+    <li><strong>Paper project:</strong> otro modelo crea una visualización interactiva que explica la idea.</li>
+    <li><strong>Publicación:</strong> si el sitio compila, se publica automáticamente. Los resultados negativos también se publican.</li>
+  </ol>
+  <h2>Cómo leer la traza</h2>
+  <p>Cada paper muestra siete puntos, uno por etapa: señales, ideas, revisión cruzada, plan, experimentos,
+     paper y paper project. Indican qué hizo el laboratorio en esa corrida.</p>
+  <dl class="leyenda">
+    <div><dt><Traza estado="con-experimentos" viz={true} grande /></dt>
+      <dd><Estado estado="con-experimentos" /> Punto lleno: la etapa se hizo. Acá, las siete.</dd></div>
+    <div><dt><Traza estado="propuesta" viz={true} grande /></dt>
+      <dd><Estado estado="propuesta" /> Punteado: no aplicó. Una propuesta todavía no tiene experimentos.</dd></div>
+    <div><dt><Traza estado="resultado-negativo" viz={true} grande /></dt>
+      <dd><Estado estado="resultado-negativo" /> Tachado: el experimento se hizo y refutó la hipótesis. También se publica.</dd></div>
+    <div><dt><Traza estado="con-experimentos" viz={false} grande /></dt>
+      <dd>Si el último punto está punteado, ese paper no tiene paper project.</dd></div>
+  </dl>
+  <h2>Límites</h2>
+  <p>No hay revisión humana ni por pares. Los modelos pueden equivocarse o malinterpretar fuentes.
+     Cada paper incluye la evidencia cruda para que cualquiera pueda auditarlo.</p>
+</Base>
+<style>
+  .leyenda { display: grid; gap: .9rem; margin: 1rem 0 1.5rem; }
+  .leyenda div { display: grid; grid-template-columns: auto 1fr; gap: .4rem 1.2rem; align-items: center; }
+  .leyenda dt { color: var(--texto); }
+  .leyenda dd { margin: 0; font-size: .95rem; color: var(--suave); display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+  @media (max-width: 560px) { .leyenda div { grid-template-columns: 1fr; } }
+</style>

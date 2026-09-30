@@ -1,0 +1,93 @@
+---
+import '@fontsource-variable/bricolage-grotesque/opsz.css';
+import '@fontsource-variable/literata/opsz.css';
+import '@fontsource-variable/literata/opsz-italic.css';
+import '@fontsource-variable/martian-mono';
+import { papersConCorrida, fechaISO } from '../lib/papers';
+
+interface Props { titulo: string; descripcion?: string }
+const { titulo, descripcion = 'Papers y proyectos generados cada día por un laboratorio de IA autónomo.' } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const [ultimo] = await papersConCorrida();
+const ruta = Astro.url.pathname.replace(base, '').replace(/\/$/, '') || '/';
+const activo = (r: string) => (r === '/' ? ruta === '/' || ruta.startsWith('/papers') || ruta.startsWith('/estado') : ruta.startsWith(r));
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo} · AI Research Lab</title>
+    <meta name="description" content={descripcion} />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="alternate" type="application/rss+xml" title="AI Research Lab · bitácora" href={`${base}/rss.xml`} />
+  </head>
+  <body>
+    <div class="estado-lab">
+      <div class="ancho">
+        {ultimo && <span><b aria-hidden="true">●</b> última corrida publicada: <time datetime={fechaISO(ultimo.p.data.fecha)}>{fechaISO(ultimo.p.data.fecha)}</time></span>}
+        <span>mini PC · Ryzen 5 · sin GPU · Rosario</span>
+      </div>
+    </div>
+    <header class="ancho">
+      <a class="marca" href={`${base}/`}>AI Research Lab<span>/</span>bitácora</a>
+      <nav>
+        <a href={`${base}/`} aria-current={activo('/') ? 'page' : undefined}>Papers</a>
+        <a href={`${base}/etiquetas`} aria-current={activo('/etiquetas') ? 'page' : undefined}>Etiquetas</a>
+        <a href={`${base}/como-funciona`} aria-current={activo('/como-funciona') ? 'page' : undefined}>Cómo funciona</a>
+        <a href={`${base}/rss.xml`}>RSS</a>
+      </nav>
+    </header>
+    <main class="ancho"><slot /></main>
+    <footer>
+      <div class="ancho">Laboratorio autónomo construido por Santino Cataldi · el contenido lo genera la IA · <a href={`${base}/rss.xml`}>RSS</a></div>
+    </footer>
+  </body>
+</html>
+<style is:global>
+  :root {
+    --fondo: #EEF1EC; --tarjeta: #F8FAF6; --texto: #16201C; --suave: #56635C; --borde: #CBD3CC;
+    --acento: #2346D8; --grilla: rgba(35, 70, 216, .06);
+    --ok: #1F7A55; --prop: #8A6200; --neg: #7A3E9D;
+    --aviso: #FFF6D6; --aviso-borde: #D9B64A;
+    --display: 'Bricolage Grotesque Variable', 'Segoe UI', system-ui, sans-serif;
+    --serif: 'Literata Variable', Georgia, 'Times New Roman', serif;
+    --mono: 'Martian Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fondo: #0F1512; --tarjeta: #151D19; --texto: #E4EAE5; --suave: #95A39B; --borde: #2A3630;
+      --acento: #8FA6FF; --grilla: rgba(143, 166, 255, .05);
+      --ok: #5CC99A; --prop: #E0B447; --neg: #C495E0;
+      --aviso: #2B2512; --aviso-borde: #6B5620;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; color: var(--texto); font: 17px/1.65 var(--serif);
+    background-color: var(--fondo);
+    background-image: linear-gradient(var(--grilla) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--grilla) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  h1, h2, h3 { font-family: var(--display); letter-spacing: -.015em; line-height: 1.15; text-wrap: balance; }
+  h1 { font-weight: 800; font-size: clamp(1.9rem, 5vw, 2.6rem); line-height: 1.05; letter-spacing: -.025em; }
+  a { color: var(--acento); text-underline-offset: 3px; }
+  a:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; border-radius: 2px; }
+  .ancho { max-width: 860px; margin: 0 auto; padding-inline: 1rem; }
+  .eti { font: 500 .7rem/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--suave); }
+</style>
+<style>
+  .estado-lab { font: .7rem/1 var(--mono); color: var(--suave); background: var(--tarjeta); border-bottom: 1px solid var(--borde); }
+  .estado-lab .ancho { display: flex; justify-content: space-between; gap: .4rem 1rem; flex-wrap: wrap; padding-block: .55rem; }
+  .estado-lab b { color: var(--ok); font-weight: 500; }
+  header { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem 1rem; flex-wrap: wrap; padding-block: 1.1rem; }
+  .marca { font: 800 1.25rem var(--display); letter-spacing: -.02em; color: var(--texto); text-decoration: none; }
+  .marca span { color: var(--acento); }
+  nav { display: flex; flex-wrap: wrap; gap: .3rem 1.1rem; font: 500 .75rem var(--mono); }
+  nav a { color: var(--texto); text-decoration: none; }
+  nav a[aria-current='page'] { color: var(--acento); text-decoration: underline; text-underline-offset: 4px; }
+  main { padding-bottom: 2rem; }
+  footer { font: .7rem/1.6 var(--mono); color: var(--suave); background: var(--tarjeta); border-top: 1px solid var(--borde); margin-top: 3rem; }
+  footer .ancho { padding-block: 1rem; }
+</style>

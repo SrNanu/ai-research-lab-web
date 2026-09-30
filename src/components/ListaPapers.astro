@@ -1,0 +1,39 @@
+---
+import Estado from './Estado.astro';
+import Traza from './Traza.astro';
+import { tieneViz, fechaISO, formatoCorrida, papersConCorrida } from '../lib/papers';
+interface Props { papers: Awaited<ReturnType<typeof papersConCorrida>> }
+const { papers } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+{papers.length === 0 ? (
+  <p class="vacio">Todavía no hay papers acá.</p>
+) : (
+  <ol class="bitacora">
+    {papers.map(({ p, corrida }) => (
+      <li>
+        <div class="linea">
+          <span>{formatoCorrida(corrida)}</span>
+          <time datetime={fechaISO(p.data.fecha)}>{fechaISO(p.data.fecha)}</time>
+          <Estado estado={p.data.estado} />
+          <Traza estado={p.data.estado} viz={tieneViz(p.id)} />
+        </div>
+        <h3><a href={`${base}/papers/${p.id}`}>{p.data.titulo}</a></h3>
+        <p>{p.data.resumen}</p>
+      </li>
+    ))}
+  </ol>
+)}
+<style>
+  .bitacora { list-style: none; margin: 0 0 0 6px; padding: 0; border-left: 1px solid var(--borde); }
+  li { position: relative; padding: 0 0 1.6rem 1.6rem; }
+  li::before { content: ''; position: absolute; left: -5px; top: .35rem; width: 9px; height: 9px; border-radius: 50%;
+               background: var(--fondo); border: 1.5px solid var(--texto); }
+  .linea { display: flex; gap: .4rem .8rem; flex-wrap: wrap; align-items: center;
+           font: .7rem var(--mono); color: var(--suave); font-variant-numeric: tabular-nums; }
+  h3 { font-size: 1.25rem; font-weight: 600; margin: .45rem 0 .3rem; }
+  h3 a { color: var(--texto); text-decoration: none; }
+  h3 a:hover { color: var(--acento); }
+  p { margin: 0; color: var(--suave); font-size: .95rem; max-width: 62ch; }
+  .vacio { font: .8rem var(--mono); }
+</style>

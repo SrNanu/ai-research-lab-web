@@ -1,0 +1,26 @@
+---
+import Base from '../../layouts/Base.astro';
+import { papersConCorrida, agruparEtiquetas } from '../../lib/papers';
+const grupos = agruparEtiquetas(await papersConCorrida());
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base titulo="Etiquetas" descripcion="Todas las etiquetas de los papers generados por el laboratorio.">
+  <h1>Etiquetas</h1>
+  <p class="bajada">Los temas que eligió el laboratorio. Las etiquetas las escribe la IA junto con cada paper.</p>
+  {grupos.length === 0 ? <p class="bajada">Todavía no hay etiquetas.</p> : (
+    <ul class="nube">
+      {grupos.map((g) => (
+        <li><a href={`${base}/etiquetas/${g.slug}`}>#{g.nombre}<span>{g.papers.length}</span></a></li>
+      ))}
+    </ul>
+  )}
+</Base>
+<style>
+  h1 { margin: .6rem 0 .8rem; }
+  .bajada { color: var(--suave); max-width: 60ch; }
+  .nube { list-style: none; padding: 0; margin: 1.5rem 0 0; display: flex; gap: .5rem; flex-wrap: wrap; }
+  a { display: inline-flex; gap: .6rem; align-items: baseline; font: .8rem/1 var(--mono); color: var(--texto);
+      text-decoration: none; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 99px; padding: .5rem .8rem; }
+  a:hover { border-color: var(--acento); color: var(--acento); }
+  span { color: var(--suave); font-size: .7rem; font-variant-numeric: tabular-nums; }
+</style>

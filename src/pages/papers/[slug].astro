@@ -1,0 +1,75 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import AvisoIA from '../../components/AvisoIA.astro';
+import Estado from '../../components/Estado.astro';
+import Traza from '../../components/Traza.astro';
+import { papersConCorrida, tieneViz, tieneEvidencia, fechaISO, formatoCorrida, type Paper } from '../../lib/papers';
+
+export async function getStaticPaths() {
+  const papers = await papersConCorrida();
+  return papers.map(({ p, corrida }) => ({ params: { slug: p.id }, props: { p, corrida } }));
+}
+const { p, corrida } = Astro.props as { p: Paper; corrida: number };
+const { Content } = await render(p);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const viz = tieneViz(p.id);
+const evidencia = tieneEvidencia(p.id);
+---
+<Base titulo={p.data.titulo} descripcion={p.data.resumen}>
+  <p><a class="volver" href={`${base}/`}>← bitácora</a></p>
+  <h1>{p.data.titulo}</h1>
+  <dl class="ficha">
+    <div><dt>Corrida</dt><dd>{formatoCorrida(corrida)}</dd></div>
+    <div><dt>Fecha</dt><dd><time datetime={fechaISO(p.data.fecha)}>{fechaISO(p.data.fecha)}</time></dd></div>
+    <div><dt>Estado</dt><dd><Estado estado={p.data.estado} /></dd></div>
+    <div><dt>Etapas</dt><dd><Traza estado={p.data.estado} viz={viz} /></dd></div>
+    {p.data.modelos.length > 0 && <div><dt>Modelos</dt><dd>{p.data.modelos.join(', ')}</dd></div>}
+  </dl>
+  {p.data.etiquetas.length > 0 && (
+    <ul class="etiquetas">{p.data.etiquetas.map((e) => <li>#{e}</li>)}</ul>
+  )}
+  <AvisoIA variante="paper" />
+  {viz && (
+    <section class="banco">
+      <div class="cab"><h2>Paper project</h2><span>sandbox · sin acceso al sitio ni a la red</span></div>
+      <!-- sandbox sin allow-same-origin: el JS generado por IA no puede tocar el sitio -->
+      <iframe src={`${base}/papers/${p.id}/viz.html`} sandbox="allow-scripts" loading="lazy"
+              title="Visualización interactiva"></iframe>
+    </section>
+  )}
+  <article><Content /></article>
+  {evidencia && (
+    <p class="evidencia"><span>evidencia.json</span>
+      <a href={`${base}/papers/${p.id}/evidencia.json`}>Ver la evidencia cruda (ideas, revisiones, fuentes) →</a></p>
+  )}
+</Base>
+<style>
+  .volver { font: .75rem var(--mono); text-decoration: none; }
+  h1 { margin: .6rem 0 1.1rem; }
+  .ficha { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin: 0;
+           border: 1px solid var(--borde); border-radius: 4px; background: var(--tarjeta); }
+  .ficha div { padding: .6rem .75rem; border-right: 1px solid var(--borde); display: grid; gap: .3rem; align-content: start; }
+  .ficha div:last-child { border-right: 0; }
+  dt { font: .62rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--suave); }
+  dd { margin: 0; font: 500 .8rem var(--mono); overflow-wrap: anywhere; }
+  .etiquetas { list-style: none; padding: 0; margin: .8rem 0 0; display: flex; gap: .4rem; flex-wrap: wrap; }
+  .etiquetas li { font: .7rem var(--mono); color: var(--suave); border: 1px solid var(--borde); border-radius: 99px;
+                  padding: .2rem .6rem; background: var(--tarjeta); }
+  .banco { border: 1px solid var(--borde); border-radius: 6px; overflow: hidden; background: var(--tarjeta); margin-bottom: 2rem; }
+  .cab { display: flex; justify-content: space-between; align-items: baseline; gap: .3rem 1rem; flex-wrap: wrap;
+         padding: .55rem .8rem; border-bottom: 1px solid var(--borde); font: .7rem var(--mono); color: var(--suave); }
+  .cab h2 { font: 500 .75rem var(--mono); letter-spacing: 0; margin: 0; color: var(--texto); }
+  iframe { display: block; width: 100%; height: 560px; border: 0; background: #fff; }
+  article { max-width: 65ch; }
+  article :global(h2) { font-size: 1.4rem; font-weight: 600; margin: 2rem 0 .6rem; }
+  article :global(h3) { font-size: 1.15rem; font-weight: 600; margin: 1.6rem 0 .5rem; }
+  article :global(pre) { overflow-x: auto; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 4px; padding: .8rem; }
+  article :global(code) { font: .82em var(--mono); }
+  article :global(img) { max-width: 100%; }
+  article :global(table) { display: block; overflow-x: auto; border-collapse: collapse; font-size: .9rem; }
+  article :global(th), article :global(td) { border: 1px solid var(--borde); padding: .35rem .6rem; }
+  article :global(blockquote) { margin: 1rem 0; padding-left: 1rem; border-left: 2px solid var(--borde); color: var(--suave); }
+  .evidencia { display: flex; gap: .5rem 1rem; flex-wrap: wrap; border-top: 1px solid var(--borde); padding-top: 1rem;
+               margin-top: 2rem; font: .75rem var(--mono); color: var(--suave); }
+</style>

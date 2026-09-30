@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{font:15px system-ui;margin:1rem;color:#1c1917}canvas{width:100%;max-width:600px;border:1px solid #ddd;border-radius:8px}</style>
+</head><body>
+<p><em>Visualización generada automáticamente por IA (ejemplo, datos ilustrativos)</em></p>
+<label>Imágenes por clase: <input id="n" type="range" min="1" max="50" value="10"> <span id="v">10</span></label>
+<canvas id="c" width="600" height="260"></canvas>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d'),n=document.getElementById('n'),v=document.getElementById('v');
+function draw(){const k=+n.value;v.textContent=k;x.clearRect(0,0,600,260);
+ const a=1-Math.exp(-k/8), b=1-Math.exp(-k/15);
+ [[a,'#4f46e5','k-NN embeddings'],[b,'#16a34a','fine-tuning']].forEach(([val,col,l],i)=>{
+  x.fillStyle=col;x.fillRect(40,40+i*90,500*val,50);x.fillStyle='#1c1917';x.fillText(l+' (ilustrativo): '+(val*100).toFixed(0)+'%',40,35+i*90);});}
+n.oninput=draw;draw();
+</script></body></html>

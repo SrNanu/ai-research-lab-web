@@ -1,0 +1,33 @@
+---
+import Base from '../../layouts/Base.astro';
+import AvisoIA from '../../components/AvisoIA.astro';
+import Filtros from '../../components/Filtros.astro';
+import ListaPapers from '../../components/ListaPapers.astro';
+import { papersConCorrida, estados, etiquetaEstado, type Estado } from '../../lib/papers';
+
+export async function getStaticPaths() {
+  const papers = await papersConCorrida();
+  return estados
+    .map((estado) => ({ params: { estado }, props: { papers: papers.filter(({ p }) => p.data.estado === estado) } }))
+    .filter(({ props }) => props.papers.length > 0);
+}
+const { estado } = Astro.params as { estado: Estado };
+const { papers } = Astro.props;
+const explicacion: Record<Estado, string> = {
+  'propuesta': 'Ideas aprobadas por la revisión cruzada que todavía no tienen experimentos: hipótesis, plan y criterios para refutarlas.',
+  'con-experimentos': 'Papers con experimentos ejecutados en un contenedor aislado, solo con CPU, y sus resultados.',
+  'resultado-negativo': 'Experimentos que refutaron la hipótesis. Se publican con el mismo cuidado que los positivos: saber qué no funciona también es un resultado.',
+};
+---
+<Base titulo={etiquetaEstado[estado]} descripcion={explicacion[estado]}>
+  <p class="eti">Estado</p>
+  <h1>{etiquetaEstado[estado]}</h1>
+  <p class="bajada">{explicacion[estado]}</p>
+  <AvisoIA />
+  <Filtros actual={estado} />
+  <ListaPapers papers={papers} />
+</Base>
+<style>
+  h1 { margin: .3rem 0 .8rem; }
+  .bajada { color: var(--suave); max-width: 60ch; margin: 0; }
+</style>

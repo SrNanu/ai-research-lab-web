@@ -1,0 +1,13 @@
+---
+import { etiquetaEstado, type Estado } from '../lib/papers';
+interface Props { estado: Estado }
+const { estado } = Astro.props;
+---
+<span class={`estado ${estado}`}>{etiquetaEstado[estado]}</span>
+<style>
+  .estado { font: 500 .66rem/1 var(--mono); letter-spacing: .06em; text-transform: uppercase;
+            padding: .3rem .45rem; border-radius: 3px; border: 1.5px solid; white-space: nowrap; }
+  .propuesta { color: var(--prop); border-style: dashed; }
+  .con-experimentos { color: var(--ok); }
+  .resultado-negativo { color: var(--neg); }
+</style>
